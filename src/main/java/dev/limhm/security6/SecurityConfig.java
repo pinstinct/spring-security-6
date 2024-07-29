@@ -21,24 +21,12 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())  // 인가 API
-        .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer
-//            .loginPage("/loginPage")
-            .loginProcessingUrl("/loginProc")
-            .defaultSuccessUrl("/", true)
-            .failureUrl("/failed")
-            .usernameParameter("userId")
-            .passwordParameter("passwd")
-            // 위에 설정보다 handler 설정이 우선 순위가 높다.
-            .successHandler((request, response, authentication) -> {
-              System.out.println("authentication : " + authentication);
-              response.sendRedirect("/home");
-            })
-            .failureHandler((request, response, exception) -> {
-              System.out.println("exception : " + exception.getMessage());
-              response.sendRedirect("/login");
-            })
-            .permitAll()
-        );  // 인증 API (폼 인증 필터)
+        /*
+         * 보안에 취약하므로 잘 사용하지 않는다.
+         * 로그인에 성공하면 응답 헤더에 Authorization 에 'ID:PW' 문자열을 base64 인코딩 한 값이 노출된다.
+         * */
+        .httpBasic(httpSecurityHttpBasicConfigurer -> httpSecurityHttpBasicConfigurer
+            .authenticationEntryPoint(new CustomAuthenticationEntryPoint()));  // 인증 API (기본 인증 필터)
     return http.build();
   }
 
