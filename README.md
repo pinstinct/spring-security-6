@@ -87,5 +87,10 @@ Client -> FilterChain(Filter -> Filter -> Filter) -> Servlet
 - 'springSecurityFilterChain' 이름으로 생성되는 필터 빈 
 - DelegatingFilterProxy 부터 요청을 위임 받음 
 
-## 사용자 정의 보안 설정하기
+## 필기 
 
+- httpBasic() 인증은 기본적으로 세션을 사용하지 않는다.
+
+### OncePerRequestFilter 
+
+해당 필터가 요청에 대해서 한번만 동작하도록 보장해주는 필터  
