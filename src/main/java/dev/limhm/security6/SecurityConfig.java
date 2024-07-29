@@ -2,7 +2,6 @@ package dev.limhm.security6;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,7 +21,24 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())  // 인가 API
-        .formLogin(Customizer.withDefaults());  // 인증 API
+        .formLogin(form -> form
+//            .loginPage("/loginPage")
+            .loginProcessingUrl("/loginProc")
+            .defaultSuccessUrl("/", true)
+            .failureUrl("/failed")
+            .usernameParameter("userId")
+            .passwordParameter("passwd")
+            // 위에 설정보다 handler 설정이 우선 순위가 높다.
+            .successHandler((request, response, authentication) -> {
+              System.out.println("authentication : " + authentication);
+              response.sendRedirect("/home");
+            })
+            .failureHandler((request, response, exception) -> {
+              System.out.println("exception : " + exception.getMessage());
+              response.sendRedirect("/login");
+            })
+            .permitAll()
+        );  // 인증 API (폼 인증 필터)
     return http.build();
   }
 
