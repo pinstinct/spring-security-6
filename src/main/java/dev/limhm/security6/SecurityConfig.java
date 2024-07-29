@@ -21,7 +21,7 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())  // 인가 API
-        .formLogin(form -> form
+        .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer
 //            .loginPage("/loginPage")
             .loginProcessingUrl("/loginProc")
             .defaultSuccessUrl("/", true)
