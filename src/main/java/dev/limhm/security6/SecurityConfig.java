@@ -21,16 +21,15 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())  // 인가 API
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/anonymous").hasRole("GUEST")
+            .requestMatchers("/anonymousContext", "/authentication").permitAll()
+            .anyRequest().authenticated())  // 인가 API
         .formLogin(Customizer.withDefaults())
-        .rememberMe(httpSecurityRememberMeConfigurer -> httpSecurityRememberMeConfigurer
-            .alwaysRemember(true)
-            .tokenValiditySeconds(3600)  // 1시간
-            .userDetailsService(userDetailsService())
-            .rememberMeParameter("remember")
-            .rememberMeCookieName("remember")
-            .key("security")
-        );  // 인증 API (기억하기 인증 필터)
+        .anonymous(httpSecurityAnonymousConfigurer -> httpSecurityAnonymousConfigurer
+            .principal("guest")
+            .authorities("ROLE_GUEST")
+        );  // 인증 API (익명 인증 사용자)
     return http.build();
   }
 
