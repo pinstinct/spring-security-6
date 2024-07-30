@@ -2,6 +2,7 @@ package dev.limhm.security6;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,12 +22,15 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())  // 인가 API
-        /*
-         * 보안에 취약하므로 잘 사용하지 않는다.
-         * 로그인에 성공하면 응답 헤더에 Authorization 에 'ID:PW' 문자열을 base64 인코딩 한 값이 노출된다.
-         * */
-        .httpBasic(httpSecurityHttpBasicConfigurer -> httpSecurityHttpBasicConfigurer
-            .authenticationEntryPoint(new CustomAuthenticationEntryPoint()));  // 인증 API (기본 인증 필터)
+        .formLogin(Customizer.withDefaults())
+        .rememberMe(httpSecurityRememberMeConfigurer -> httpSecurityRememberMeConfigurer
+            .alwaysRemember(true)
+            .tokenValiditySeconds(3600)  // 1시간
+            .userDetailsService(userDetailsService())
+            .rememberMeParameter("remember")
+            .rememberMeCookieName("remember")
+            .key("security")
+        );  // 인증 API (기억하기 인증 필터)
     return http.build();
   }
 
