@@ -43,4 +43,9 @@ public class IndexController {
       return "not anonymous";
     }
   }
+
+  @GetMapping("/logoutSuccess")
+  public String logoutSuccess() {
+    return "logoutSuccess";
+  }
 }
