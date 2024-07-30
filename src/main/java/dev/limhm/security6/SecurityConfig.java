@@ -3,22 +3,19 @@ package dev.limhm.security6;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
 //@EnableWebSecurity
 @Configuration
@@ -30,39 +27,27 @@ public class SecurityConfig {
    * */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+    HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+    requestCache.setMatchingRequestParameterName("customParam=y");
+
     http
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/logoutSuccess").permitAll()
             .anyRequest().authenticated())  // 인가 API
-        .formLogin(Customizer.withDefaults())
-        .logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer
-            .logoutUrl("/logoutProc")
-            .logoutRequestMatcher(new AntPathRequestMatcher("/logoutProc", "GET"))  // logoutUrl 보다 우선순위 높음
-            .logoutSuccessUrl("/logoutSuccess")
-            .logoutSuccessHandler(new LogoutSuccessHandler() {
+        .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer
+            .successHandler(new AuthenticationSuccessHandler() {
               @Override
-              public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
-                  Authentication authentication) throws IOException, ServletException {
-                response.sendRedirect("/logoutSuccess");
+              public void onAuthenticationSuccess(HttpServletRequest request,
+                  HttpServletResponse response, Authentication authentication)
+                  throws IOException, ServletException {
+                SavedRequest savedRequest = requestCache.getRequest(request, response);
+                String redirectUrl = savedRequest.getRedirectUrl();
+                response.sendRedirect(redirectUrl);
               }
-            })  // logoutSuccessUrl 보다 우선순위 높음
-            .deleteCookies("JSESSIONID", "remember-me")
-            .invalidateHttpSession(true)
-            .clearAuthentication(true)
-            .addLogoutHandler(new LogoutHandler() {
-              @Override
-              public void logout(HttpServletRequest request, HttpServletResponse response,
-                  Authentication authentication) {
-                // 세션 처리
-                HttpSession session = request.getSession();
-                session.invalidate();
-                // Authentication 객체 처리
-                SecurityContextHolder.getContextHolderStrategy().getContext().setAuthentication(null);
-                // SecurityContext 객체 처리
-                SecurityContextHolder.getContextHolderStrategy().clearContext();
-              }
-            }).permitAll()
-        );  // 인증 API (로그 아웃)
+            }))
+        .requestCache(httpSecurityRequestCacheConfigurer -> httpSecurityRequestCacheConfigurer
+            .requestCache(requestCache));  // 요청 캐시 RequestCache, SavedRequestl
     return http.build();
   }
 
