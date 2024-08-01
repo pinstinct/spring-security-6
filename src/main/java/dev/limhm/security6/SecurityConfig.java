@@ -3,12 +3,11 @@ package dev.limhm.security6;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration
@@ -16,27 +15,20 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    AuthenticationManagerBuilder builder = http.getSharedObject(
-        AuthenticationManagerBuilder.class);
-    AuthenticationManager authenticationManager = builder.build();
-
     http
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/login").permitAll()
-            .anyRequest().authenticated())  // 인가 API
-        .formLogin(Customizer.withDefaults())
-//        .securityContext(securityContext -> securityContext.requireExplicitSave(false))  // SecurityContextPersistenceFilter 를 이용해 제공해주는 세션 사용
-        .authenticationManager(authenticationManager)
-        .addFilterBefore(customAuthenticationFilter(http, authenticationManager),
-            UsernamePasswordAuthenticationFilter.class);
+            .requestMatchers("/login").permitAll()
+            .anyRequest().authenticated())
+        // spring security 는 post, put, delete 등 조회가 아닌 요청에서는 csrf 토큰 값을 요구
+        // 테스트를 위해 해당 기능을 비활성화
+        .csrf(AbstractHttpConfigurer::disable);
     return http.build();
   }
 
-  public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http,
-      AuthenticationManager authenticationManager) {
-    CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(http);
-    customAuthenticationFilter.setAuthenticationManager(authenticationManager);
-    return customAuthenticationFilter;
+  @Bean
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
+      throws Exception {
+    return configuration.getAuthenticationManager();
   }
 
   @Bean
