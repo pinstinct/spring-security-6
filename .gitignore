@@ -1,3 +1,6 @@
+### Custom ###
+httpClient/*
+
 HELP.md
 .gradle
 build/
