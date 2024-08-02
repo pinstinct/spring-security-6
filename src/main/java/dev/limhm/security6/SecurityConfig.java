@@ -4,7 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -19,10 +20,16 @@ public class SecurityConfig {
             .anyRequest().authenticated())
         .formLogin(Customizer.withDefaults())
         .sessionManagement(
-            httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(
-                SessionCreationPolicy.STATELESS))
+            httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer
+                .maximumSessions(2)
+                .maxSessionsPreventsLogin(false))
     ;
     return http.build();
+  }
+
+  @Bean
+  public SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
   }
 
   @Bean

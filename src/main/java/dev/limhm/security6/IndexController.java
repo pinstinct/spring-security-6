@@ -1,5 +1,6 @@
 package dev.limhm.security6;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
@@ -9,7 +10,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class IndexController {
+
+  private final SessionInfoService sessionInfoService;
+
+  @GetMapping("/sessionInfo")
+  public String sessionInf() {
+    sessionInfoService.sessionInfo();
+    return "sessionInfo";
+  }
 
   @GetMapping("/")
   public Authentication index(Authentication authentication) {
