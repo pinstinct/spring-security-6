@@ -13,12 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class IndexController {
 
-  private final SessionInfoService sessionInfoService;
-
-  @GetMapping("/sessionInfo")
-  public String sessionInf() {
-    sessionInfoService.sessionInfo();
-    return "sessionInfo";
+  @GetMapping("/api/users")
+  public String users() {
+    return "users";
   }
 
   @GetMapping("/")
